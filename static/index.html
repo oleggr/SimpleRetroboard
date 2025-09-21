@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ретроборда</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Новый header с табами */
+        .app-header {
+            background: white;
+            border-bottom: 1px solid #dee2e6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px 20px; /* Увеличиваем верхний и нижний отступы */
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: relative;
+            z-index: 1000;
+            flex-shrink: 0;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            position: relative;
+            gap: 15px;
+            flex: 1;
+            height: 44px; /* Фиксированная высота для выравнивания */
+        }
+
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            height: 44px; /* Фиксированная высота для выравнивания */
+        }
+
+        /* Footer */
+        .app-footer {
+            background: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            padding: 15px 20px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .footer-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+            color: #6c757d;
+        }
+
+        /* Кнопка создания доски */
+        .add-board-btn {
+            background: rgb(141, 210, 157);
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-board-btn:hover {
+            background: rgb(121, 190, 137);
+            transform: translateY(-1px);
+        }
+
+        /* Секция создания доски */
+        .create-board-section {
+            position: relative;
+        }
+
+        /* Выпадающая форма создания доски */
+        .create-board-dropdown {
+            position: absolute;
+            top: calc(100% + 10px); /* Добавляем отступ 10px от кнопки */
+            left: 0;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 15px;
+            min-width: 300px;
+            z-index: 1001;
+            display: none;
+        }
+
+        .create-board-dropdown.show {
+            display: block;
+        }
+
+        /* Табы досок */
+        .board-tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            align-items: center;
+            max-width: 100%;
+        }
+
+        .board-tab {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px 16px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            color: #495057;
+            min-width: fit-content;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .board-tab:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .board-tab.active {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+            box-shadow: 0 2px 6px rgba(40,167,69,0.3);
+        }
+
+        .board-tab.active:hover {
+            background: #218838;
+            border-color: #1e7e34;
+        }
+
+        /* Основной контент */
+        .main-content {
+            flex: 1;
+            padding: 20px 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #boardContent {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #errorContainer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        /* Placeholder когда доска не выбрана */
+        .board-placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .placeholder-content h2 {
+            color: #6c757d;
+            margin-bottom: 15px;
+            font-size: 24px;
+        }
+
+        .placeholder-content p {
+            color: #8a8a8a;
+            font-size: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .board-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .board-info h2 {
+            color: #495057;
+            margin-bottom: 10px;
+            font-size: 24px;
+        }
+
+        .board-info p {
+            color: #6c757d;
+            font-size: 16px;
+        }
+
+        /* Колонки ретроборды */
+        .columns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .column {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #f1f3f4;
+            min-height: 400px;
+        }
+
+        .column-title {
+            color: #495057;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+            font-size: 18px;
+        }
+
+        /* Кнопки добавления заметок */
+        .add-note-button {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            color: #6b7280;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            margin-bottom: 15px;
+        }
+
+        .add-note-button:hover {
+            border-color: #6c757d;
+            background: #f8f9fa;
+            color: #495057;
+        }
+
+        .add-note-button.active {
+            border-color: #6c757d;
+            background: #f1f3f4;
+        }
+
+        /* Формы добавления заметок */
+        .add-note-inline {
+            display: none;
+            margin-bottom: 15px;
+        }
+
+        .add-note-inline.show {
+            display: block;
+        }
+
+        .add-note-inline textarea {
+            width: 100%;
+            padding: 12px 25px 22px 15px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: none;
+            margin-bottom: 10px;
+            min-height: 40px;
+            max-height: 200px;
+            overflow-y: hidden;
+            transition: height 0.2s ease;
+            line-height: 1.4;
+        }
+
+        .add-note-inline textarea::placeholder {
+            color: #6c757d;
+            opacity: 0.8;
+            padding-right: 5px;
+        }
+
+        .add-note-inline input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .form-actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+            background: rgb(141, 210, 157);
+            color: white;
+        }
+
+        .form-actions button:hover {
+            background: rgb(121, 190, 137);
+        }
+
+        .form-actions .cancel-btn {
+            background: #f5a3bd !important;
+            color: white;
+        }
+
+        .form-actions .cancel-btn:hover {
+            background: #f083a1 !important;
+        }
+
+        /* Заметки */
+        .notes-container {
+            min-height: 100px;
+        }
+
+        .note {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            cursor: move;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        /* Цвета заметок по категориям */
+        .note[data-category="good"] {
+            background: #f0f9f0; /* Очень светло зеленый */
+            border: 1px solid #d4edda;
+        }
+
+        .note[data-category="bad"] {
+            background: #fdf2f2; /* Очень светло розовый */
+            border: 1px solid #f5c6cb;
+        }
+
+        .note[data-category="improve"] {
+            background: #f0f8ff; /* Очень светло голубой */
+            border: 1px solid #b8daff;
+        }
+
+        .note:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .note.dragging {
+            opacity: 0.5;
+            transform: rotate(2deg);
+        }
+
+        .note-text {
+            margin-bottom: 8px;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+        }
+
+        .note-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+
+        .vote-btn {
+            background: #868e96;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .vote-btn:hover {
+            background: #6c757d;
+        }
+
+        .edit-btn {
+            background: rgb(141, 210, 157);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .edit-btn:hover {
+            background: rgb(121, 190, 137);
+        }
+
+        /* Редактирование заметок */
+        .inline-edit-textarea {
+            width: 100%;
+            min-height: 60px;
+            max-height: 200px;
+            padding: 12px 25px 20px 15px;
+            border: 2px solid #007bff;
+            border-radius: 4px;
+            resize: none;
+            font-family: inherit;
+            font-size: inherit;
+            margin-bottom: 8px;
+            overflow-y: hidden;
+            transition: height 0.2s ease;
+            line-height: 1.4;
+        }
+
+        .delete-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .delete-btn:hover {
+            background: #c82333;
+        }
+
+        .edit-buttons-container {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            margin-top: 8px;
+        }
+
+        /* Профиль */
+        .profile-button {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 10px 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #495057;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            white-space: nowrap;
+        }
+
+        .profile-button:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .avatar {
+            width: 24px;
+            height: 24px;
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        /* Формы в dropdown */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-secondary {
+            background: #f5a3bd;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-secondary:hover {
+            background: #f083a1;
+        }
+
+        /* Специфичный селектор для кнопки отмены создания доски */
+        .form-actions .btn-secondary {
+            background: #f5a3bd !important;
+        }
+
+        .form-actions .btn-secondary:hover {
+            background: #f083a1 !important;
+        }
+
+        /* Модальные окна */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .modal h2 {
+            margin-bottom: 20px;
+            color: #495057;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Ошибки */
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Drag and Drop */
+        .column.drag-over {
+            background: #e3f2fd;
+            border-color: #2196f3;
+        }
+
+        .drop-zone {
+            min-height: 20px;
+            border-radius: 4px;
+        }
+
+        .note.merge-target {
+            border-color: #ffc107;
+            background: #fff9c4;
+            box-shadow: 0 0 10px rgba(255, 193, 7, 0.3);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .app-header {
+                padding: 10px 15px;
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            .header-left, .header-right, .header-center {
+                margin: 0;
+            }
+
+            .app-title {
+                font-size: 18px;
+            }
+
+            .columns {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .main-content {
+                padding: 15px;
+            }
+
+            .board-tabs {
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Верхний заголовок с табами досок -->
+    <header class="app-header">
+        <!-- Левая часть - кнопка добавления доски и вкладки -->
+        <div class="header-left">
+            <div class="create-board-section">
+                <button class="add-board-btn" onclick="toggleCreateBoardForm()" title="Добавить новую ретроборду">
+                    ➕ Создать доску
+                </button>
+                
+                <!-- Форма создания новой доски (выпадающая) -->
+                <div id="createBoardForm" class="create-board-dropdown">
+                    <div class="form-group">
+                        <input type="text" id="newBoardName" placeholder="Название доски..." maxlength="100" autofocus>
+                    </div>
+                    <div class="form-group">
+                        <input type="text" id="newBoardDesc" placeholder="Описание (необязательно)..." maxlength="200">
+                    </div>
+                    <div class="form-actions">
+                        <button onclick="createBoard()" class="btn-primary">Создать</button>
+                        <button onclick="cancelCreateBoardForm()" class="btn-secondary">Отмена</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Вкладки досок сразу после кнопки создания -->
+            <div class="board-tabs" id="boardTabs">
+                <!-- Вкладки будут загружены динамически -->
+            </div>
+        </div>
+
+
+        <!-- Правый верхний угол - кнопка профиля -->
+        <div class="header-right">
+            <div class="profile-button" onclick="showProfileModal()">
+                <div class="avatar" id="userAvatar">Г</div>
+                <span id="userName">Гость</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основной контент -->
+    <main class="main-content">
+        <div id="boardContent">
+            <div id="errorContainer" style="display: none;"></div>
+            
+            <!-- Placeholder когда доска не выбрана -->
+            <div id="boardPlaceholder" class="board-placeholder">
+                <div class="placeholder-content">
+                    <h2>📋 Выберите доску для начала работы</h2>
+                    <p>Выберите существующую ретроборду из списка выше или создайте новую</p>
+                </div>
+            </div>
+            
+            <!-- Информация о доске (скрыта по умолчанию) -->
+            <div id="boardInfo" class="board-info" style="display: none;">
+                <h2 id="boardTitle"></h2>
+                <p id="boardDescription"></p>
+            </div>
+            
+            <!-- Колонки ретроборды (скрыты по умолчанию) -->
+            <div id="boardColumns" class="columns" style="display: none;">
+                <div class="column" data-category="good">
+                    <h3 class="column-title">👍 Хорошо</h3>
+                    
+                    <!-- Кнопка добавления заметки -->
+                    <button class="add-note-button" onclick="toggleNoteForm('good')">➕ Добавить заметку</button>
+                    
+                    <!-- Форма добавления заметки (скрытая по умолчанию) -->
+                    <form id="goodNoteForm" class="add-note-inline">
+                        <textarea id="goodNoteText" placeholder="Что прошло хорошо?&#10;(Ctrl+Enter или ⌘+Enter для отправки)" rows="2"></textarea>
+                        <input type="text" id="goodNoteAuthor" placeholder="Ваше имя">
+                        <div class="form-actions">
+                            <button type="button" onclick="addInlineNote('good')">Добавить</button>
+                            <button type="button" onclick="cancelNoteForm('good')" class="cancel-btn">Отмена</button>
+                        </div>
+                    </form>
+                    
+                    <div class="notes-container" id="goodNotes">
+                        <div class="drop-zone" data-category="good"></div>
+                        <!-- Заметки будут добавлены динамически -->
+                    </div>
+                </div>
+
+                <div class="column" data-category="bad">
+                    <h3 class="column-title">👎 Плохо</h3>
+                    
+                    <!-- Кнопка добавления заметки -->
+                    <button class="add-note-button" onclick="toggleNoteForm('bad')">➕ Добавить заметку</button>
+                    
+                    <!-- Форма добавления заметки (скрытая по умолчанию) -->
+                    <form id="badNoteForm" class="add-note-inline">
+                        <textarea id="badNoteText" placeholder="Что пошло не так?&#10;(Ctrl+Enter или ⌘+Enter для отправки)" rows="2"></textarea>
+                        <input type="text" id="badNoteAuthor" placeholder="Ваше имя">
+                        <div class="form-actions">
+                            <button type="button" onclick="addInlineNote('bad')">Добавить</button>
+                            <button type="button" onclick="cancelNoteForm('bad')" class="cancel-btn">Отмена</button>
+                        </div>
+                    </form>
+                    
+                    <div class="notes-container" id="badNotes">
+                        <div class="drop-zone" data-category="bad"></div>
+                        <!-- Заметки будут добавлены динамически -->
+                    </div>
+                </div>
+
+                <div class="column" data-category="improve">
+                    <h3 class="column-title">🚀 Экшн поинты</h3>
+                    
+                    <!-- Кнопка добавления заметки -->
+                    <button class="add-note-button" onclick="toggleNoteForm('improve')">➕ Добавить заметку</button>
+                    
+                    <!-- Форма добавления заметки (скрытая по умолчанию) -->
+                    <form id="improveNoteForm" class="add-note-inline">
+                        <textarea id="improveNoteText" placeholder="Что нужно улучшить?&#10;(Ctrl+Enter или ⌘+Enter для отправки)" rows="2"></textarea>
+                        <input type="text" id="improveNoteAuthor" placeholder="Ваше имя">
+                        <div class="form-actions">
+                            <button type="button" onclick="addInlineNote('improve')">Добавить</button>
+                            <button type="button" onclick="cancelNoteForm('improve')" class="cancel-btn">Отмена</button>
+                        </div>
+                    </form>
+                    
+                    <div class="notes-container" id="improveNotes">
+                        <div class="drop-zone" data-category="improve"></div>
+                        <!-- Заметки будут добавлены динамически -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Модальное окно первого входа -->
+    <div id="loginModal" class="modal-overlay">
+        <div class="modal">
+            <h2>🎉 Добро пожаловать!</h2>
+            <p>Введите ваше имя для работы с ретробордой. Оно будет использоваться при создании заметок.</p>
+            <div class="form-group">
+                <label for="loginName">Ваше имя:</label>
+                <input type="text" id="loginName" placeholder="Например: Алексей (Enter для входа)" maxlength="50" autofocus>
+            </div>
+            <div class="modal-buttons">
+                <button onclick="saveUserName()" class="btn-primary">🚀 Начать работу</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно профиля -->
+    <div id="profileModal" class="modal-overlay">
+        <div class="modal">
+            <h2>👤 Профиль пользователя</h2>
+            <div class="form-group">
+                <label for="profileName">Ваше имя:</label>
+                <input type="text" id="profileName" placeholder="Введите ваше имя (Enter для сохранения)" maxlength="50">
+            </div>
+            <div class="modal-buttons">
+                <button onclick="updateProfile()" class="btn-primary">💾 Сохранить</button>
+                <button onclick="hideProfileModal()" class="btn-secondary">❌ Отмена</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <h1 class="footer-title">🔄 Ретроспектива команды</h1>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

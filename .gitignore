@@ -1,0 +1,15 @@
+.DS_Store
+**/.DS_Store
+
+.idea/
+venv/
+
+__pycache__/
+**/__pycache__/
+
+config.py
+**/config.py
+
+*.db
+
+.env
