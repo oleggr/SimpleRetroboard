@@ -35,4 +35,4 @@ echo "✅ Запуск приложения на http://localhost:8080"
 echo "   Нажмите Ctrl+C для остановки"
 echo ""
 
-python main.py
+python3 main.py
