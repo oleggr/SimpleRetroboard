@@ -628,6 +628,16 @@ function renderBoard() {
 
 // Обработчики событий
 document.addEventListener('DOMContentLoaded', function() {
+    // Инициализировать тему перед всем остальным
+    initializeTheme();
+    
+    // Экспорт функций управления темой в глобальную область видимости
+    window.toggleTheme = toggleTheme;
+    window.getCurrentTheme = getCurrentTheme;
+    window.applyTheme = applyTheme;
+    
+    console.log('🔧 Функции управления темой экспортированы в window:', typeof window.toggleTheme);
+    
     // Проверяем авторизацию
     const user = getCurrentUser();
     if (!user || !user.name) {
@@ -1398,6 +1408,71 @@ async function saveInlineEdit(noteId, originalText, originalAuthor) {
     } catch (error) {
         console.error('❌ Ошибка обновления заметки:', error);
         showError('Ошибка обновления заметки: ' + error.message);
+    }
+}
+
+// Функции управления темой
+function getCurrentTheme() {
+    // Сначала проверяем localStorage
+    const savedTheme = localStorage.getItem('retroboard_theme');
+    if (savedTheme) {
+        return savedTheme;
+    }
+    
+    // Если в localStorage нет, проверяем системные настройки
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+    }
+    
+    // По умолчанию светлая тема
+    return 'light';
+}
+
+function applyTheme(theme) {
+    const root = document.documentElement;
+    const themeIcon = document.getElementById('themeIcon');
+    
+    if (theme === 'dark') {
+        root.setAttribute('data-theme', 'dark');
+        if (themeIcon) themeIcon.textContent = '☀️';
+    } else {
+        root.removeAttribute('data-theme');
+        if (themeIcon) themeIcon.textContent = '🌙';
+    }
+    
+    console.log('🎨 Применена тема:', theme);
+}
+
+function toggleTheme() {
+    const currentTheme = getCurrentTheme();
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    // Сохранить выбор в localStorage
+    localStorage.setItem('retroboard_theme', newTheme);
+    
+    // Применить новую тему
+    applyTheme(newTheme);
+    
+    console.log('🔄 Переключена тема с', currentTheme, 'на', newTheme);
+}
+
+
+function initializeTheme() {
+    const theme = getCurrentTheme();
+    applyTheme(theme);
+    console.log('🚀 Инициализирована тема:', theme);
+    
+    // Слушать изменения системной темы
+    if (window.matchMedia) {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', (e) => {
+            // Обновлять автоматически только если пользователь не выбирал тему вручную
+            if (!localStorage.getItem('retroboard_theme')) {
+                const systemTheme = e.matches ? 'dark' : 'light';
+                applyTheme(systemTheme);
+                console.log('🖥️ Автоматическое переключение на системную тему:', systemTheme);
+            }
+        });
     }
 }
 

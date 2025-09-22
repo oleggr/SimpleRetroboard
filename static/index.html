@@ -5,6 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ретроборда</title>
     <style>
+        /* CSS переменные для темизации */
+        :root {
+            /* Светлая тема */
+            --bg-primary: #f8f9fa;
+            --bg-secondary: #ffffff;
+            --bg-gradient: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            --text-primary: #495057;
+            --text-secondary: #6c757d;
+            --text-muted: #8a8a8a;
+            --border-color: #dee2e6;
+            --border-light: #f1f3f4;
+            --shadow-light: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow-medium: 0 2px 8px rgba(0,0,0,0.1);
+            --shadow-heavy: 0 4px 12px rgba(0,0,0,0.15);
+            --note-good-bg: #f0f9f0;
+            --note-good-border: #d4edda;
+            --note-bad-bg: #fdf2f2;
+            --note-bad-border: #f5c6cb;
+            --note-improve-bg: #f0f8ff;
+            --note-improve-border: #b8daff;
+            --hover-bg: #f8f9fa;
+            --hover-border: #adb5bd;
+            --form-bg: #f8f9fa;
+        }
+
+        /* Темная тема */
+        [data-theme="dark"] {
+            --bg-primary: #1a1d23;
+            --bg-secondary: #2d3748;
+            --bg-gradient: linear-gradient(135deg, #1a1d23 0%, #2d3748 100%);
+            --text-primary: #e2e8f0;
+            --text-secondary: #a0aec0;
+            --text-muted: #718096;
+            --border-color: #4a5568;
+            --border-light: #2d3748;
+            --shadow-light: 0 1px 3px rgba(0,0,0,0.3);
+            --shadow-medium: 0 2px 8px rgba(0,0,0,0.3);
+            --shadow-heavy: 0 4px 12px rgba(0,0,0,0.5);
+            --note-good-bg: #22543d;
+            --note-good-border: #38a169;
+            --note-bad-bg: #742a2a;
+            --note-bad-border: #e53e3e;
+            --note-improve-bg: #1a365d;
+            --note-improve-border: #3182ce;
+            --hover-bg: #4a5568;
+            --hover-border: #718096;
+            --form-bg: #4a5568;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,17 +62,19 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            background: var(--bg-gradient);
+            color: var(--text-primary);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            transition: background 0.3s ease, color 0.3s ease;
         }
 
         /* Новый header с табами */
         .app-header {
-            background: white;
-            border-bottom: 1px solid #dee2e6;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-medium);
             padding: 20px 20px; /* Увеличиваем верхний и нижний отступы */
             display: flex;
             align-items: center;
@@ -31,6 +82,7 @@
             position: relative;
             z-index: 1000;
             flex-shrink: 0;
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
         .header-left {
@@ -46,23 +98,55 @@
         .header-right {
             display: flex;
             align-items: center;
+            gap: 12px;
             height: 44px; /* Фиксированная высота для выравнивания */
+        }
+
+        /* Кнопка переключения темы */
+        .theme-toggle-btn {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-light);
+            min-width: 44px;
+            height: 44px;
+        }
+
+        .theme-toggle-btn:hover {
+            background: var(--hover-bg);
+            border-color: var(--hover-border);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-heavy);
+        }
+
+        .theme-toggle-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-light);
         }
 
         /* Footer */
         .app-footer {
-            background: #f8f9fa;
-            border-top: 1px solid #dee2e6;
+            background: var(--form-bg);
+            border-top: 1px solid var(--border-color);
             padding: 15px 20px;
             text-align: center;
             flex-shrink: 0;
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
         .footer-title {
             font-size: 16px;
             font-weight: 600;
             margin: 0;
-            color: #6c757d;
+            color: var(--text-secondary);
+            transition: color 0.3s ease;
         }
 
         /* Кнопка создания доски */
@@ -120,8 +204,8 @@
         }
 
         .board-tab {
-            background: white;
-            border: 1px solid #dee2e6;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 10px 16px;
             cursor: pointer;
@@ -129,15 +213,15 @@
             font-size: 14px;
             font-weight: 500;
             transition: all 0.2s ease;
-            color: #495057;
+            color: var(--text-primary);
             min-width: fit-content;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-light);
         }
 
         .board-tab:hover {
-            background: #f8f9fa;
-            border-color: #adb5bd;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            background: var(--hover-bg);
+            border-color: var(--hover-border);
+            box-shadow: var(--shadow-heavy);
         }
 
         .board-tab.active {
@@ -223,20 +307,22 @@
         }
 
         .column {
-            background: white;
+            background: var(--bg-secondary);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-            border: 1px solid #f1f3f4;
+            box-shadow: var(--shadow-medium);
+            border: 1px solid var(--border-light);
             min-height: 400px;
+            transition: background 0.3s ease, border-color 0.3s ease;
         }
 
         .column-title {
-            color: #495057;
+            color: var(--text-primary);
             margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 2px solid #e9ecef;
+            border-bottom: 2px solid var(--border-color);
             font-size: 18px;
+            transition: color 0.3s ease, border-color 0.3s ease;
         }
 
         /* Кнопки добавления заметок */
@@ -341,30 +427,30 @@
         }
 
         .note {
-            background: #ffffff;
-            border: 1px solid #dee2e6;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 12px;
             margin-bottom: 10px;
             cursor: move;
             transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-light);
         }
 
         /* Цвета заметок по категориям */
         .note[data-category="good"] {
-            background: #f0f9f0; /* Очень светло зеленый */
-            border: 1px solid #d4edda;
+            background: var(--note-good-bg);
+            border: 1px solid var(--note-good-border);
         }
 
         .note[data-category="bad"] {
-            background: #fdf2f2; /* Очень светло розовый */
-            border: 1px solid #f5c6cb;
+            background: var(--note-bad-bg);
+            border: 1px solid var(--note-bad-border);
         }
 
         .note[data-category="improve"] {
-            background: #f0f8ff; /* Очень светло голубой */
-            border: 1px solid #b8daff;
+            background: var(--note-improve-bg);
+            border: 1px solid var(--note-improve-border);
         }
 
         .note:hover {
@@ -392,9 +478,10 @@
             align-items: flex-start;
             gap: 10px;
             font-size: 12px;
-            color: #666;
+            color: var(--text-secondary);
             margin-top: 8px;
             flex-wrap: wrap;
+            transition: color 0.3s ease;
         }
 
         .note-actions {
@@ -479,8 +566,8 @@
 
         /* Профиль */
         .profile-button {
-            background: white;
-            border: 1px solid #dee2e6;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 10px 16px;
             cursor: pointer;
@@ -489,17 +576,17 @@
             gap: 8px;
             font-size: 14px;
             font-weight: 500;
-            color: #495057;
+            color: var(--text-primary);
             transition: all 0.2s ease;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            box-shadow: var(--shadow-light);
             white-space: nowrap;
         }
 
         .profile-button:hover {
-            background: #f8f9fa;
-            border-color: #adb5bd;
+            background: var(--hover-bg);
+            border-color: var(--hover-border);
             transform: translateY(-1px);
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            box-shadow: var(--shadow-heavy);
         }
 
         .avatar {
@@ -694,8 +781,11 @@
         </div>
 
 
-        <!-- Правый верхний угол - кнопка профиля -->
+        <!-- Правый верхний угол - переключатель темы и кнопка профиля -->
         <div class="header-right">
+            <button class="theme-toggle-btn" onclick="toggleTheme()" title="Переключить тему">
+                <span id="themeIcon">🌙</span>
+            </button>
             <div class="profile-button" onclick="showProfileModal()">
                 <div class="avatar" id="userAvatar">Г</div>
                 <span id="userName">Гость</span>
@@ -828,6 +918,48 @@
         <h1 class="footer-title">🔄 Ретроспектива команды</h1>
     </footer>
 
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v=2.0"></script>
+    
+    <!-- Дополнительный скрипт для функций темы (во избежание проблем с кэшированием) -->
+    <script>
+        // Функция переключения темы, определенная прямо в HTML
+        function toggleTheme() {
+            console.log('🔄 toggleTheme вызвана из HTML скрипта');
+            
+            // Проверим, загружены ли основные функции из app.js
+            if (window.getCurrentTheme && window.applyTheme) {
+                // Используем функции из app.js
+                const currentTheme = window.getCurrentTheme();
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('retroboard_theme', newTheme);
+                window.applyTheme(newTheme);
+                console.log('🔄 Переключена тема с', currentTheme, 'на', newTheme, '(через app.js)');
+            } else {
+                // Fallback - базовая реализация прямо здесь
+                console.log('⚠️ Основные функции темы не загружены, использую fallback');
+                const root = document.documentElement;
+                const themeIcon = document.getElementById('themeIcon');
+                const currentTheme = localStorage.getItem('retroboard_theme') || 'light';
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                localStorage.setItem('retroboard_theme', newTheme);
+                
+                if (newTheme === 'dark') {
+                    root.setAttribute('data-theme', 'dark');
+                    if (themeIcon) themeIcon.textContent = '☀️';
+                } else {
+                    root.removeAttribute('data-theme');
+                    if (themeIcon) themeIcon.textContent = '🌙';
+                }
+                
+                console.log('🔄 Переключена тема с', currentTheme, 'на', newTheme, '(fallback)');
+            }
+        }
+        
+        // Убедимся, что функция доступна глобально
+        window.toggleTheme = toggleTheme;
+        
+        console.log('✅ toggleTheme определена в HTML:', typeof toggleTheme);
+    </script>
 </body>
 </html>
